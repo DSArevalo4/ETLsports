@@ -104,14 +104,36 @@ loader.to_sqlite("data/output/stock_sentiment.db", "stock_sentiment_clean")
 
 ## 📊 Gráficas de Análisis (EDA)
 
-La aplicación genera automáticamente:
+La aplicación genera **9 gráficas interactivas** específicas para análisis de sentimientos de acciones:
 
-1. **📈 Distribución de Sentimientos** - Histograma y gráfica de pastel
-2. **📉 Evolución Temporal de Precios** - Serie temporal interactiva
-3. **🔗 Sentimiento vs Precio** - Scatter plot con línea de tendencia
-4. **🏢 Análisis por Acción** - Top 10 stocks y distribución de precios
-5. **📅 Análisis Temporal** - Sentimiento promedio por mes
-6. **📊 Volumen de Transacciones** - Gráfica de barras temporal
+### 1️⃣ Distribución de Sentimientos
+- **Histograma con KDE** y estadísticas (media, mediana)
+- **Boxplot** para detección de outliers
+- **Estadísticas descriptivas** completas (asimetría, curtosis)
+
+### 2️⃣ Correlación Sentimiento-Precio
+- **Scatter plot** con línea de tendencia (regresión lineal)
+- **Heatmap de correlación** entre todas las variables numéricas
+- Coeficiente de correlación de Pearson
+
+### 3️⃣ Evolución Temporal con Doble Eje
+- **Serie temporal interactiva** con precio y sentimiento
+- Selección múltiple de acciones
+- Visualización comparativa
+
+### 4️⃣ Análisis Detallado por Acción (3 tabs)
+- **Frecuencia**: Top 15 acciones + Treemap de distribución
+- **Precio Promedio**: Gráfico de barras con error bars
+- **Sentimiento Promedio**: Categorización positivo/neutral/negativo
+
+### 5️⃣ Análisis Temporal Avanzado (3 tabs)
+- **Por Mes**: Sentimiento y precio promedio mensual
+- **Por Día de Semana**: Volumen + Radar chart de sentimiento
+- **Por Trimestre**: Análisis estacional con máximos y mínimos
+
+### 6️⃣ Análisis de Volatilidad y Riesgo
+- **Scatter plot Riesgo vs Retorno** (tamaño = volumen)
+- **Coeficiente de Variación** para identificar acciones volátiles
 
 ## 🔧 Configuración
 
