@@ -1,0 +1,19 @@
+[user]
+    name = DSArevalo4
+    email = tu_email@example.com
+
+[core]
+    autocrlf = true
+    editor = code --wait
+
+[pull]
+    rebase = false
+
+[push]
+    default = simple
+
+[merge]
+    tool = vscode
+
+[mergetool "vscode"]
+    cmd = code --wait $MERGED

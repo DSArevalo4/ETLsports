@@ -235,7 +235,7 @@ Proyecto de uso educativo y personal.
 
 ## 👤 Autor
 
-**SANTY** - ETL Stock Sentiment Analysis Project
+**Daniel Santiago Arevalo** - ETL Stock Sentiment Analysis Project
 
 ---
 
