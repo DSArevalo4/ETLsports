@@ -1,242 +1,176 @@
-# 📈 ETL Stock Sentiment Analysis
+# ETLsports — ETL y visualización de estadísticas de jugadores NBA
 
-Pipeline ETL completo para análisis de sentimientos de acciones con visualizaciones interactivas.
+Descripción
+Este repositorio implementa un flujo ETL sencillo para archivos Excel con estadísticas históricas de jugadores de la NBA y una interfaz ligera en Streamlit para explorar y visualizar los datos. El proyecto está organizado en tres etapas clásicas: Extract, Transform y Load, además de una pequeña app para visualizar.
 
-## 🎯 Objetivo
+Características
+- Extracción: lectura de archivos .xlsx con pandas (`openpyxl` como engine).
+- Transformación: limpieza configurable (normalización de nombres de columnas, eliminación de duplicados y NAs).
+- Carga: exportación a CSV o a base de datos SQLite.
+- Visualización: app en Streamlit para explorar dataset, limpiar rápidamente y graficar distribuciones y relaciones.
 
-Construir un pipeline ETL en Python que:
-- **Extraiga** datos de archivos CSV con análisis de sentimientos de acciones
-- **Transforme** y limpie los datos (fechas, duplicados, nulos, normalizaciones)
-- **Cargue** datasets limpios (CSV/Parquet/SQLite)
-- **Genere** al menos 5 gráficas de análisis exploratorio (EDA)
-
-## 📁 Estructura del Proyecto
-
+Estructura del proyecto
 ```
 ETLsports/
-├── Config/
-│   └── configuraciones.py         # Configuraciones centralizadas
-├── Extract/
-│   └── stockExtract.py           # Clase Extractor para CSV
-├── Transform/
-│   └── stockTransform.py         # Clase Transformer (limpieza)
-├── Load/
-│   └── stockLoad.py              # Clase Loader (CSV/Parquet/SQLite)
-├── data/
-│   ├── input/                    # Archivos CSV de entrada (git ignored)
-│   └── output/                   # Datos procesados (git ignored)
-├── .venv/                        # Entorno virtual (git ignored)
-├── main.py                       # App Streamlit interactiva
-├── requirements.txt              # Dependencias del proyecto
-├── .gitignore                    # Archivos excluidos de Git
-└── README.md
+├─ Config/
+│  └─ configuraciones.py         # Rutas y constantes (INPUT_PATH, DB, tabla)
+├─ Extract/
+│  └─ nbaExtract.py              # Clase Extractor (lee Excel)
+├─ Transform/
+│  └─ nbaTransform.py            # Clase Transformer (limpieza/normalización)
+├─ Load/
+│  └─ nbaLoad.py                 # Clase Loader (CSV/SQLite)
+├─ NBAplayers/                   # Archivos .xlsx de entrada (datos fuente)
+├─ main.py                       # App Streamlit de exploración y gráficos
+├─ requeriments.txt              # Dependencias del proyecto
+└─ README.md
 ```
 
-## 🚀 Instalación
+Requisitos
+- Python 3.9+ (recomendado)
+- Sistema operativo: Windows, macOS o Linux
 
-### 1. Clonar el repositorio
-```bash
-git clone <tu-repositorio>
-cd ETLsports
-```
-
-### 2. Crear entorno virtual
+Instalación
+1) Crear y activar un entorno virtual (opcional, recomendado)
 ```bash
 python -m venv .venv
 .venv\Scripts\activate   # Windows
 # source .venv/bin/activate  # macOS/Linux
 ```
 
-### 3. Instalar dependencias
+2) Instalar dependencias
 ```bash
 pip install -r requirements.txt
 ```
 
-### 4. Preparar los datos
-Coloca el archivo `stock_senti_analysis.csv` en la carpeta `data/input/`:
+Configuración
+El archivo `Config/configuraciones.py` define rutas por defecto para el flujo batch (no para Streamlit):
 ```
-ETLsports/data/input/stock_senti_analysis.csv
+class Config:
+    INPUT_PATH = "/workspaces/ATPtour/NBAplayers/1963 - NBA Player Stats.xlsx"
+    SQLITE_DB_PATH = "/workspaces/ATPtour/Extract/nba_player_stats_1963.db"
+    SQLITE_TABLE = "nba_player_stats"
 ```
 
-## 💻 Uso
+Recomendaciones:
+- Ajusta `INPUT_PATH` para que apunte a un archivo existente dentro de `NBAplayers/` en tu máquina.
+- Cambia `SQLITE_DB_PATH` a una ruta válida local (por ejemplo `./Extract/nba_player_stats_1963.db`).
 
-### Opción 1: Interfaz Streamlit (Recomendado)
-
+Uso
+### 1) Interfaz Streamlit (exploración y visualización)
+La app de `main.py` lista los .xlsx en `NBAplayers/`, permite una limpieza básica y genera gráficos.
 ```bash
 streamlit run main.py
 ```
 
-**Funcionalidades:**
-- ✅ Seleccionar archivo CSV
-- 🧹 Limpiar datos (duplicados, nulos, normalización)
-- 📊 Visualizar 6 gráficas interactivas
-- 💾 Descargar datos limpios
+**Nota**: El proyecto ahora usa rutas relativas automáticas, por lo que funcionará en cualquier sistema operativo sin modificar código.
 
-### Opción 2: Pipeline ETL Programático
+### 2) Flujo ETL programático (batch)
+Puedes usar las clases `Extractor`, `Transformer` y `Loader` desde un script Python:
+```
+from Extract.nbaExtract import Extractor
+from Transform.nbaTransform import Transformer
+from Load.nbaLoad import Loader
 
-```python
-from Extract.stockExtract import Extractor
-from Transform.stockTransform import Transformer
-from Load.stockLoad import Loader
-
-# Extracción
-extractor = Extractor("data/input/stock_senti_analysis.csv")
+extractor = Extractor(file_path="NBAplayers/1963 - NBA Player Stats.xlsx")
 df = extractor.extract()
 
-# Transformación
 df_clean = Transformer.clean_data(
     df,
     remove_duplicates=True,
-    remove_na=True,
+    remove_na=False,
     normalize_columns=True,
-    parse_dates=True
 )
 
-# Características derivadas
-df_enhanced = Transformer.add_derived_features(df_clean)
-
-# Carga
-loader = Loader(df_enhanced)
-loader.to_csv("data/output/stock_sentiment_clean.csv")
-loader.to_parquet("data/output/stock_sentiment_clean.parquet")
-loader.to_sqlite("data/output/stock_sentiment.db", "stock_sentiment_clean")
+loader = Loader(df_clean)
+loader.to_csv("output/nba_player_stats_1963.csv")
+loader.to_sqlite("Extract/nba_player_stats_1963.db", "nba_player_stats")
 ```
+
+Parámetros de limpieza
+- normalize_columns: normaliza nombres (trim, minúsculas, guiones bajos).
+- remove_duplicates: elimina duplicados.
+- remove_na: elimina filas con valores nulos.
+
+Gráficos disponibles en la app
+- Histograma de edad con KDE.
+- Dispersión TRB vs PTS (si existen columnas).
+- Distribución por posición (mapeando abreviaturas a nombres en español).
+
+Buenas prácticas y notas
+- Mantén los archivos fuente `.xlsx` dentro de `NBAplayers/`.
+- Verifica que las columnas esperadas existan antes de graficar en `main.py`.
+- Si ejecutas en Windows, usa rutas con `\\` o `r"C:\\ruta\\..."` para evitar errores de escape.
+- Para `pandas.read_excel` asegúrate de tener `openpyxl` instalado (incluido en `requeriments.txt`).
+
+Solución de problemas
+- **No se listan archivos en la app**: Asegúrate de que la carpeta `NBAplayers/` exista en el mismo directorio que `main.py` y contenga archivos `.xlsx` válidos.
+- **Error al leer Excel**: Verifica la instalación de `openpyxl`: `pip install openpyxl`
+- **Gráficos no se muestran**: El código ahora valida que las columnas existan antes de graficar
+- **Error de ruta**: Usa rutas relativas o el módulo `pathlib` para compatibilidad multiplataforma
+
+Licencia
+Libre uso educativo y personal. Ajusta según tus necesidades.
+
+# 📰 ETL News Sentiment Analysis
+
+Pipeline ETL completo para análisis de sentimientos en noticias con visualizaciones interactivas avanzadas.
+
+## 🚀 Descripción del Proyecto
+
+Este proyecto implementa un pipeline ETL para el análisis de sentimientos en noticias, permitiendo la visualización interactiva de datos históricos y resultados de análisis de sentimiento.
 
 ## 📊 Gráficas de Análisis (EDA)
 
-La aplicación genera **9 gráficas interactivas** específicas para análisis de sentimientos de acciones:
+La aplicación genera **7 gráficas especializadas** para análisis de sentimientos de noticias:
 
 ### 1️⃣ Distribución de Sentimientos
-- **Histograma con KDE** y estadísticas (media, mediana)
-- **Boxplot** para detección de outliers
-- **Estadísticas descriptivas** completas (asimetría, curtosis)
+- **Gráfico de barras** con cantidad de noticias positivas/negativas
+- **Gráfico de dona** con proporciones
+- **Métricas clave** (porcentajes y totales)
 
-### 2️⃣ Correlación Sentimiento-Precio
-- **Scatter plot** con línea de tendencia (regresión lineal)
-- **Heatmap de correlación** entre todas las variables numéricas
-- Coeficiente de correlación de Pearson
+### 2️⃣ Evolución Temporal del Sentimiento
+- **Serie temporal** de volumen de noticias por sentimiento
+- **Índice de sentimiento** con media móvil de 7 días
+- Identificación de períodos positivos/negativos
 
-### 3️⃣ Evolución Temporal con Doble Eje
-- **Serie temporal interactiva** con precio y sentimiento
-- Selección múltiple de acciones
-- Visualización comparativa
+### 3️⃣ Patrones Temporales
+- **Por Año**: Distribución y tabla resumen con porcentajes
+- **Por Mes**: Sentimiento promedio y volumen mensual
+- **Por Día de Semana**: Radar chart + volumen por día
 
-### 4️⃣ Análisis Detallado por Acción (3 tabs)
-- **Frecuencia**: Top 15 acciones + Treemap de distribución
-- **Precio Promedio**: Gráfico de barras con error bars
-- **Sentimiento Promedio**: Categorización positivo/neutral/negativo
+### 4️⃣ Análisis de Palabras Clave
+- **Top 20 palabras** más frecuentes en títulos
+- **Treemap de palabras positivas** (contexto de noticias positivas)
+- **Treemap de palabras negativas** (contexto de noticias negativas)
 
-### 5️⃣ Análisis Temporal Avanzado (3 tabs)
-- **Por Mes**: Sentimiento y precio promedio mensual
-- **Por Día de Semana**: Volumen + Radar chart de sentimiento
-- **Por Trimestre**: Análisis estacional con máximos y mínimos
+### 5️⃣ Longitud de Títulos vs Sentimiento
+- **Boxplot** comparando longitud de títulos positivos/negativos
+- **Violin plot** mostrando distribución detallada
+- **Tabla estadística** con media, mediana, desviación estándar
 
-### 6️⃣ Análisis de Volatilidad y Riesgo
-- **Scatter plot Riesgo vs Retorno** (tamaño = volumen)
-- **Coeficiente de Variación** para identificar acciones volátiles
+### 6️⃣ Mapa de Calor Mes-Año
+- **Heatmap interactivo** mostrando sentimiento promedio
+- Identificación de **patrones estacionales**
+- Colores intuitivos (verde=positivo, rojo=negativo)
 
-## 🔧 Configuración
+### 7️⃣ Análisis por Trimestre
+- **Tendencia trimestral** del sentimiento
+- **Comparación de Q1, Q2, Q3, Q4**
+- Porcentaje de noticias positivas por trimestre
 
-### Parámetros de Limpieza
+## 📝 Estructura del CSV
 
-| Parámetro | Descripción | Valor por defecto |
-|-----------|-------------|-------------------|
-| `remove_duplicates` | Elimina filas duplicadas | `True` |
-| `remove_na` | Elimina filas con valores nulos | `True` |
-| `normalize_columns` | Normaliza nombres de columnas | `True` |
-| `parse_dates` | Convierte columnas de fecha a datetime | `True` |
+El archivo `stock_senti_analysis.csv` debe contener:
+- **Date**: Fecha de la noticia (formato: YYYY-MM-DD)
+- **Label**: Sentimiento (0=Negativo, 1=Positivo)
+- **Top1 a Top25**: Títulos de noticias principales del día
 
-### Formatos de Salida
+## 🔍 Características del Análisis
 
-- **CSV**: Compatibilidad universal
-- **Parquet**: Formato columnar eficiente (menor tamaño)
-- **SQLite**: Base de datos local para consultas SQL
-
-## 🛠️ Solución de Problemas
-
-| Problema | Solución |
-|----------|----------|
-| `streamlit: command not found` | Activa el entorno virtual: `.venv\Scripts\activate` |
-| **PermissionError al leer CSV** | **1. Cierra Excel<br>2. Cierra Explorador de Windows<br>3. Ejecuta: `close_file_handles.bat`<br>4. Recarga Streamlit (F5)** |
-| No se listan archivos | Verifica que `data/input/` contenga archivos `.csv` |
-| Error de encoding | El código ahora detecta automáticamente UTF-8/Latin-1 |
-| Gráficas vacías | Confirma que las columnas esperadas existan |
-
-### 🔧 Solucionar "Permission Denied"
-
-**Método 1: Cerrar programas manualmente**
-```powershell
-# 1. Cierra Excel completamente
-# 2. Cierra todas las ventanas del Explorador de Windows
-# 3. En el navegador, recarga la página de Streamlit (F5)
-```
-
-**Método 2: Script automático**
-```powershell
-# Ejecuta este script para cerrar Excel automáticamente
-.\close_file_handles.bat
-
-# Luego ejecuta Streamlit
-streamlit run main.py
-```
-
-**Método 3: Verificar permisos**
-```powershell
-# Diagnosticar qué está bloqueando el archivo
-python fix_permissions.py
-```
-
-**Método 4: Copiar archivo con nuevo nombre**
-```powershell
-# Si el problema persiste, crea una copia del archivo
-cd data\input
-copy stock_senti_analysis.csv stock_data_backup.csv
-
-# Luego selecciona el archivo backup en Streamlit
-```
-
-### Comandos útiles de Git
-
-```bash
-# Ver estado del repositorio
-git status
-
-# Añadir solo archivos del proyecto (sin .venv)
-git add *.py *.txt *.md .gitignore
-git add Config/ Extract/ Transform/ Load/
-
-# Commit
-git commit -m "Descripción del cambio"
-
-# Push al repositorio remoto
-git push origin main
-```
-
-## 📝 Requisitos del CSV
-
-El archivo CSV debe contener al menos:
-- **Date**: Fecha de la observación
-- **Stock/Ticker/Symbol**: Identificador de la acción
-- **Sentiment**: Valor de sentimiento (numérico o categórico)
-- **Price/Close**: Precio de la acción
-- **Volume** (opcional): Volumen de transacciones
-
-## 🤝 Contribuciones
-
-1. Fork el proyecto
-2. Crea una rama: `git checkout -b feature/nueva-funcionalidad`
-3. Commit: `git commit -am 'Añade nueva funcionalidad'`
-4. Push: `git push origin feature/nueva-funcionalidad`
-5. Abre un Pull Request
-
-## 📄 Licencia
-
-Proyecto de uso educativo y personal.
-
-## 👤 Autor
-
-**Daniel Santiago Arevalo** - ETL Stock Sentiment Analysis Project
-
----
-
-> **Nota Importante**: El entorno virtual `.venv` y los datos en `data/` están excluidos de Git por razones de seguridad y tamaño. Cada usuario debe crear su propio entorno virtual siguiendo las instrucciones de instalación.
+✅ **Limpieza automática** de datos (duplicados, nulos)
+✅ **Detección de patrones temporales** (diario, semanal, mensual, trimestral, anual)
+✅ **Análisis de lenguaje natural** (palabras clave más frecuentes)
+✅ **Visualizaciones interactivas** con zoom, hover y filtros
+✅ **Métricas estadísticas avanzadas** (correlaciones, distribuciones)
+✅ **Exportación de datos limpios** (CSV/JSON)
