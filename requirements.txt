@@ -6,3 +6,5 @@ openpyxl
 plotly
 sqlalchemy
 pyarrow
+numpy
+scipy
