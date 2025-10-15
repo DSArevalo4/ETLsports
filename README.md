@@ -1,117 +1,220 @@
-ETLsports — ETL y visualización de estadísticas de jugadores NBA
+# 📈 ETL Stock Sentiment Analysis
 
-Descripción
-Este repositorio implementa un flujo ETL sencillo para archivos Excel con estadísticas históricas de jugadores de la NBA y una interfaz ligera en Streamlit para explorar y visualizar los datos. El proyecto está organizado en tres etapas clásicas: Extract, Transform y Load, además de una pequeña app para visualizar.
+Pipeline ETL completo para análisis de sentimientos de acciones con visualizaciones interactivas.
 
-Características
-- Extracción: lectura de archivos .xlsx con pandas (`openpyxl` como engine).
-- Transformación: limpieza configurable (normalización de nombres de columnas, eliminación de duplicados y NAs).
-- Carga: exportación a CSV o a base de datos SQLite.
-- Visualización: app en Streamlit para explorar dataset, limpiar rápidamente y graficar distribuciones y relaciones.
+## 🎯 Objetivo
 
-Estructura del proyecto
+Construir un pipeline ETL en Python que:
+- **Extraiga** datos de archivos CSV con análisis de sentimientos de acciones
+- **Transforme** y limpie los datos (fechas, duplicados, nulos, normalizaciones)
+- **Cargue** datasets limpios (CSV/Parquet/SQLite)
+- **Genere** al menos 5 gráficas de análisis exploratorio (EDA)
+
+## 📁 Estructura del Proyecto
+
 ```
 ETLsports/
-├─ Config/
-│  └─ configuraciones.py         # Rutas y constantes (INPUT_PATH, DB, tabla)
-├─ Extract/
-│  └─ nbaExtract.py              # Clase Extractor (lee Excel)
-├─ Transform/
-│  └─ nbaTransform.py            # Clase Transformer (limpieza/normalización)
-├─ Load/
-│  └─ nbaLoad.py                 # Clase Loader (CSV/SQLite)
-├─ NBAplayers/                   # Archivos .xlsx de entrada (datos fuente)
-├─ main.py                       # App Streamlit de exploración y gráficos
-├─ requeriments.txt              # Dependencias del proyecto
-└─ README.md
+├── Config/
+│   └── configuraciones.py         # Configuraciones centralizadas
+├── Extract/
+│   └── stockExtract.py           # Clase Extractor para CSV
+├── Transform/
+│   └── stockTransform.py         # Clase Transformer (limpieza)
+├── Load/
+│   └── stockLoad.py              # Clase Loader (CSV/Parquet/SQLite)
+├── data/
+│   ├── input/                    # Archivos CSV de entrada (git ignored)
+│   └── output/                   # Datos procesados (git ignored)
+├── .venv/                        # Entorno virtual (git ignored)
+├── main.py                       # App Streamlit interactiva
+├── requirements.txt              # Dependencias del proyecto
+├── .gitignore                    # Archivos excluidos de Git
+└── README.md
 ```
 
-Requisitos
-- Python 3.9+ (recomendado)
-- Sistema operativo: Windows, macOS o Linux
+## 🚀 Instalación
 
-Instalación
-1) Crear y activar un entorno virtual (opcional, recomendado)
+### 1. Clonar el repositorio
+```bash
+git clone <tu-repositorio>
+cd ETLsports
 ```
+
+### 2. Crear entorno virtual
+```bash
 python -m venv .venv
-.venv\\Scripts\\activate   # Windows PowerShell
+.venv\Scripts\activate   # Windows
 # source .venv/bin/activate  # macOS/Linux
 ```
 
-2) Instalar dependencias
-```
-pip install -r requeriments.txt
-```
-
-Configuración
-El archivo `Config/configuraciones.py` define rutas por defecto para el flujo batch (no para Streamlit):
-```
-class Config:
-    INPUT_PATH = "/workspaces/ATPtour/NBAplayers/1963 - NBA Player Stats.xlsx"
-    SQLITE_DB_PATH = "/workspaces/ATPtour/Extract/nba_player_stats_1963.db"
-    SQLITE_TABLE = "nba_player_stats"
+### 3. Instalar dependencias
+```bash
+pip install -r requirements.txt
 ```
 
-Recomendaciones:
-- Ajusta `INPUT_PATH` para que apunte a un archivo existente dentro de `NBAplayers/` en tu máquina.
-- Cambia `SQLITE_DB_PATH` a una ruta válida local (por ejemplo `./Extract/nba_player_stats_1963.db`).
-
-Uso
-1) Interfaz Streamlit (exploración y visualización)
-La app de `main.py` lista los .xlsx en `NBAplayers/`, permite una limpieza básica y genera gráficos.
+### 4. Preparar los datos
+Coloca el archivo `stock_senti_analysis.csv` en la carpeta `data/input/`:
 ```
+ETLsports/data/input/stock_senti_analysis.csv
+```
+
+## 💻 Uso
+
+### Opción 1: Interfaz Streamlit (Recomendado)
+
+```bash
 streamlit run main.py
 ```
-Notas:
-- La ruta de datos en `main.py` está fijada en `DATA_DIR = '/workspaces/ETLsports/NBAplayers'`.
-- En Windows, ajusta esa constante si tu ruta local difiere, por ejemplo:
-```
-DATA_DIR = 'C:/Users/SANTY/ETLsports/NBAplayers'
-```
 
-2) Flujo ETL programático (batch)
-Puedes usar las clases `Extractor`, `Transformer` y `Loader` desde un script Python:
-```
-from Extract.nbaExtract import Extractor
-from Transform.nbaTransform import Transformer
-from Load.nbaLoad import Loader
+**Funcionalidades:**
+- ✅ Seleccionar archivo CSV
+- 🧹 Limpiar datos (duplicados, nulos, normalización)
+- 📊 Visualizar 6 gráficas interactivas
+- 💾 Descargar datos limpios
 
-extractor = Extractor(file_path="NBAplayers/1963 - NBA Player Stats.xlsx")
+### Opción 2: Pipeline ETL Programático
+
+```python
+from Extract.stockExtract import Extractor
+from Transform.stockTransform import Transformer
+from Load.stockLoad import Loader
+
+# Extracción
+extractor = Extractor("data/input/stock_senti_analysis.csv")
 df = extractor.extract()
 
+# Transformación
 df_clean = Transformer.clean_data(
     df,
     remove_duplicates=True,
-    remove_na=False,
+    remove_na=True,
     normalize_columns=True,
+    parse_dates=True
 )
 
-loader = Loader(df_clean)
-loader.to_csv("output/nba_player_stats_1963.csv")
-loader.to_sqlite("Extract/nba_player_stats_1963.db", "nba_player_stats")
+# Características derivadas
+df_enhanced = Transformer.add_derived_features(df_clean)
+
+# Carga
+loader = Loader(df_enhanced)
+loader.to_csv("data/output/stock_sentiment_clean.csv")
+loader.to_parquet("data/output/stock_sentiment_clean.parquet")
+loader.to_sqlite("data/output/stock_sentiment.db", "stock_sentiment_clean")
 ```
 
-Parámetros de limpieza
-- normalize_columns: normaliza nombres (trim, minúsculas, guiones bajos).
-- remove_duplicates: elimina duplicados.
-- remove_na: elimina filas con valores nulos.
+## 📊 Gráficas de Análisis (EDA)
 
-Gráficos disponibles en la app
-- Histograma de edad con KDE.
-- Dispersión TRB vs PTS (si existen columnas).
-- Distribución por posición (mapeando abreviaturas a nombres en español).
+La aplicación genera automáticamente:
 
-Buenas prácticas y notas
-- Mantén los archivos fuente `.xlsx` dentro de `NBAplayers/`.
-- Verifica que las columnas esperadas existan antes de graficar en `main.py`.
-- Si ejecutas en Windows, usa rutas con `\\` o `r"C:\\ruta\\..."` para evitar errores de escape.
-- Para `pandas.read_excel` asegúrate de tener `openpyxl` instalado (incluido en `requeriments.txt`).
+1. **📈 Distribución de Sentimientos** - Histograma y gráfica de pastel
+2. **📉 Evolución Temporal de Precios** - Serie temporal interactiva
+3. **🔗 Sentimiento vs Precio** - Scatter plot con línea de tendencia
+4. **🏢 Análisis por Acción** - Top 10 stocks y distribución de precios
+5. **📅 Análisis Temporal** - Sentimiento promedio por mes
+6. **📊 Volumen de Transacciones** - Gráfica de barras temporal
 
-Solución de problemas
-- No se listan archivos en la app: confirma que `DATA_DIR` apunta a `NBAplayers/` y que hay `.xlsx` válidos.
-- Error al leer Excel: verifica la instalación de `openpyxl` y que el archivo no esté corrupto o bloqueado.
-- Error de ruta en `Config`: ajusta las rutas a tu entorno y evita rutas absolutas de otro workspace.
-- Gráficos vacíos: revisa que las columnas (`Age`, `TRB`, `PTS`, `Pos`) existan en tu dataset.
+## 🔧 Configuración
 
-Licencia
-Libre uso educativo y personal. Ajusta según tus necesidades.
+### Parámetros de Limpieza
+
+| Parámetro | Descripción | Valor por defecto |
+|-----------|-------------|-------------------|
+| `remove_duplicates` | Elimina filas duplicadas | `True` |
+| `remove_na` | Elimina filas con valores nulos | `True` |
+| `normalize_columns` | Normaliza nombres de columnas | `True` |
+| `parse_dates` | Convierte columnas de fecha a datetime | `True` |
+
+### Formatos de Salida
+
+- **CSV**: Compatibilidad universal
+- **Parquet**: Formato columnar eficiente (menor tamaño)
+- **SQLite**: Base de datos local para consultas SQL
+
+## 🛠️ Solución de Problemas
+
+| Problema | Solución |
+|----------|----------|
+| `streamlit: command not found` | Activa el entorno virtual: `.venv\Scripts\activate` |
+| **PermissionError al leer CSV** | **1. Cierra Excel<br>2. Cierra Explorador de Windows<br>3. Ejecuta: `close_file_handles.bat`<br>4. Recarga Streamlit (F5)** |
+| No se listan archivos | Verifica que `data/input/` contenga archivos `.csv` |
+| Error de encoding | El código ahora detecta automáticamente UTF-8/Latin-1 |
+| Gráficas vacías | Confirma que las columnas esperadas existan |
+
+### 🔧 Solucionar "Permission Denied"
+
+**Método 1: Cerrar programas manualmente**
+```powershell
+# 1. Cierra Excel completamente
+# 2. Cierra todas las ventanas del Explorador de Windows
+# 3. En el navegador, recarga la página de Streamlit (F5)
+```
+
+**Método 2: Script automático**
+```powershell
+# Ejecuta este script para cerrar Excel automáticamente
+.\close_file_handles.bat
+
+# Luego ejecuta Streamlit
+streamlit run main.py
+```
+
+**Método 3: Verificar permisos**
+```powershell
+# Diagnosticar qué está bloqueando el archivo
+python fix_permissions.py
+```
+
+**Método 4: Copiar archivo con nuevo nombre**
+```powershell
+# Si el problema persiste, crea una copia del archivo
+cd data\input
+copy stock_senti_analysis.csv stock_data_backup.csv
+
+# Luego selecciona el archivo backup en Streamlit
+```
+
+### Comandos útiles de Git
+
+```bash
+# Ver estado del repositorio
+git status
+
+# Añadir solo archivos del proyecto (sin .venv)
+git add *.py *.txt *.md .gitignore
+git add Config/ Extract/ Transform/ Load/
+
+# Commit
+git commit -m "Descripción del cambio"
+
+# Push al repositorio remoto
+git push origin main
+```
+
+## 📝 Requisitos del CSV
+
+El archivo CSV debe contener al menos:
+- **Date**: Fecha de la observación
+- **Stock/Ticker/Symbol**: Identificador de la acción
+- **Sentiment**: Valor de sentimiento (numérico o categórico)
+- **Price/Close**: Precio de la acción
+- **Volume** (opcional): Volumen de transacciones
+
+## 🤝 Contribuciones
+
+1. Fork el proyecto
+2. Crea una rama: `git checkout -b feature/nueva-funcionalidad`
+3. Commit: `git commit -am 'Añade nueva funcionalidad'`
+4. Push: `git push origin feature/nueva-funcionalidad`
+5. Abre un Pull Request
+
+## 📄 Licencia
+
+Proyecto de uso educativo y personal.
+
+## 👤 Autor
+
+**SANTY** - ETL Stock Sentiment Analysis Project
+
+---
+
+> **Nota Importante**: El entorno virtual `.venv` y los datos en `data/` están excluidos de Git por razones de seguridad y tamaño. Cada usuario debe crear su propio entorno virtual siguiendo las instrucciones de instalación.
