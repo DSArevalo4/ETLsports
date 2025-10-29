@@ -1,0 +1,65 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Entorno virtual
+.venv/
+venv/
+ENV/
+env/
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
+*.ipynb
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose.yml
+docker-run.ps1
+docker-run.sh
+
+# Documentación
+*.md
+DOCKER.md
+
+# Datos (comentar si necesitas incluir datos de ejemplo)
+# data/input/*.csv
+# data/output/
+
+# Logs
+*.log
+
+# Tests
+.pytest_cache/
+.coverage
+tests/
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# Temporales
+*.tmp
+*.bak
